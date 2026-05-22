@@ -1,0 +1,27 @@
+# Xcode user data & build artifacts
+xcuserdata/
+DerivedData/
+build/
+*.xcscmblueprint
+*.xccheckout
+
+# Swift Package Manager
+.build/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Environment
+.env
+.env.local
+
+# App packaging
+*.ipa
+*.app.dSYM.zip
+*.app.dSYM
+
+# Playgrounds
+timeline.xctimeline
+playground.xcworkspace
