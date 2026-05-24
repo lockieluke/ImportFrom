@@ -136,20 +136,17 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
             return str
         }
 
-        // Try: action.sidecarService.device.name
-        if let name = safeString(dynAction.sidecarService.device.name) { return name }
+        let candidates: [Dynamic] = [
+            dynAction.sidecarService.device.name,
+            dynAction.sidecarService.device.localizedDeviceType,
+            dynAction.device.name,
+            dynAction.device.localizedDeviceType,
+            dynAction.service.device.name,
+        ]
 
-        // Try: action.sidecarService.device.localizedDeviceType
-        if let type = safeString(dynAction.sidecarService.device.localizedDeviceType) { return type }
-
-        // Try: action.device.name (if SidecarServiceAction has a device property)
-        if let name = safeString(dynAction.device.name) { return name }
-
-        // Try: action.device.localizedDeviceType
-        if let type = safeString(dynAction.device.localizedDeviceType) { return type }
-
-        // Try: action.service.device.name
-        if let name = safeString(dynAction.service.device.name) { return name }
+        for candidate in candidates {
+            if let name = safeString(candidate) { return name }
+        }
 
         return nil
     }
