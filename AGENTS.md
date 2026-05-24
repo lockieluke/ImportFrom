@@ -18,7 +18,7 @@ xcodebuild -project ImportFrom.xcodeproj -scheme ImportFrom build
 
 | File | Purpose |
 |------|---------|
-| `ImportFrom/ImportFromApp.swift` | SwiftUI `@main` app entrypoint |
+| `ImportFrom/AppEntry.swift` | `NSApplicationDelegate` app entrypoint — `@main` struct with `@MainActor static func main()` that creates an `NSWindow` with an `NSHostingController` wrapping `ContentView` |
 | `ImportFrom/ContentView.swift` | SwiftUI UI — device picker, action menus, image display |
 | `ImportFrom/SidecarHelper.swift` | Private API bridge — loads `SidecarUI.framework` + `SidecarCore.framework` at runtime, discovers devices via `SidecarMenuController`, triggers `SidecarServiceAction.invoke(withPasteboard:)`, and receives images via `NSServicesMenuRequestor` |
 

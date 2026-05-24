@@ -293,10 +293,17 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
         }
     }
 
+    override var acceptsFirstResponder: Bool { true }
+
     func makeFirstResponder() {
-        DispatchQueue.main.async {
+        let work = {
             guard let window = NSApp.keyWindow else { return }
             window.makeFirstResponder(self)
+        }
+        if Thread.isMainThread {
+            work()
+        } else {
+            DispatchQueue.main.sync(execute: work)
         }
     }
 
