@@ -82,19 +82,19 @@ struct ContentView: View {
                     self.receivedImage = image
                 }
             }
-            refreshDevices()
+            self.refreshDevices()
         }
         .onChange(of: helper.devices) { _, _ in
-            selectedDeviceIndex = 0
-            selectedServiceIndex = 0
+            self.selectedDeviceIndex = 0
+            self.selectedServiceIndex = 0
         }
         .onChange(of: selectedDeviceIndex) { _, _ in
-            selectedServiceIndex = 0
+            self.selectedServiceIndex = 0
         }
     }
 
     private func refreshDevices() {
-        isRefreshing = true
+        self.isRefreshing = true
         DispatchQueue.global(qos: .userInitiated).async {
             SidecarHelper.shared.refreshDevices()
             DispatchQueue.main.async {

@@ -40,34 +40,34 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
     }
 
     private func loadSidecarCore() -> Bool {
-        if sidecarCoreBundle != nil { return true }
+        if self.sidecarCoreBundle != nil { return true }
         let path = "/System/Library/PrivateFrameworks/SidecarCore.framework"
         guard let bundle = Bundle(path: path), bundle.load() else {
             print("[SidecarHelper] Failed to load SidecarCore.framework")
             return false
         }
-        sidecarCoreBundle = bundle
+        self.sidecarCoreBundle = bundle
         return true
     }
 
     private func loadSidecarUI() -> Bool {
-        if sidecarUIBundle != nil { return true }
+        if self.sidecarUIBundle != nil { return true }
         let path = "/System/Library/PrivateFrameworks/SidecarUI.framework"
         guard let bundle = Bundle(path: path), bundle.load() else {
             print("[SidecarHelper] Failed to load SidecarUI.framework")
             return false
         }
-        sidecarUIBundle = bundle
+        self.sidecarUIBundle = bundle
         return true
     }
 
     // MARK: - Device discovery
 
     func refreshDevices() {
-        guard loadSidecarUI() else { return }
-        guard let menuController = getMenuController() else { return }
+        guard self.loadSidecarUI() else { return }
+        guard let menuController = self.getMenuController() else { return }
 
-        makeFirstResponder()
+        self.makeFirstResponder()
 
         let submenu = menuController.menu(withOptions: 0)
         submenu.update()
@@ -77,7 +77,7 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
             return
         }
 
-        logMenuStructure(nsMenu: nsMenu)
+        self.logMenuStructure(nsMenu: nsMenu)
 
         var actions: [(deviceName: String, serviceName: String, actionObj: AnyObject)] = []
         var currentDeviceName: String? = nil
@@ -87,15 +87,15 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
             
             if item.representedObject == nil {
                 // No represented object: either a device header or a non-action item
-                if !item.title.isEmpty && !isKnownServiceName(item.title) {
+                if !item.title.isEmpty && !self.isKnownServiceName(item.title) {
                     currentDeviceName = item.title
                 }
             } else if let obj = item.representedObject,
                       let cls = NSClassFromString("SidecarServiceAction"),
                       (obj as AnyObject).isKind(of: cls) {
                 // Service action item — assign to current device header
-                let deviceName = currentDeviceName ?? extractDeviceName(from: obj) ?? "Device"
-                actions.append((deviceName: deviceName, serviceName: localizedSidecarName(item.title), actionObj: obj as AnyObject))
+                let deviceName = currentDeviceName ?? self.extractDeviceName(from: obj) ?? "Device"
+                actions.append((deviceName: deviceName, serviceName: self.localizedSidecarName(item.title), actionObj: obj as AnyObject))
             }
         }
 
@@ -187,46 +187,46 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
     // MARK: - High-level triggers
 
     func triggerImportFromIPhone() {
-        guard let firstDevice = devices.first,
+        guard let firstDevice = self.devices.first,
               let firstService = firstDevice.services.first else {
             print("[SidecarHelper] No devices available")
             return
         }
-        triggerService(firstService)
+        self.triggerService(firstService)
     }
 
     func triggerService(_ service: SidecarService) {
-        makeFirstResponder()
+        self.makeFirstResponder()
         let pasteboard = NSPasteboard.general
         let initialChangeCount = pasteboard.changeCount
         pasteboard.clearContents()
         
-        startPasteboardFallback(initialChangeCount: initialChangeCount)
+        self.startPasteboardFallback(initialChangeCount: initialChangeCount)
         
         let action = Dynamic(service.actionObject)
         action.invoke(withPasteboard: pasteboard)
     }
 
     func triggerTakePhoto() {
-        guard let service = findFirstService(nameContains: "Photo") else {
-            triggerImportFromIPhone()
+        guard let service = self.findFirstService(nameContains: "Photo") else {
+            self.triggerImportFromIPhone()
             return
         }
-        triggerService(service)
+        self.triggerService(service)
     }
 
     func triggerScanDocuments() {
-        guard let service = findFirstService(nameContains: "Scan") else {
-            triggerImportFromIPhone()
+        guard let service = self.findFirstService(nameContains: "Scan") else {
+            self.triggerImportFromIPhone()
             return
         }
-        triggerService(service)
+        self.triggerService(service)
     }
 
     func triggerPhotosBrowser() {
-        guard loadSidecarUI() else { return }
-        guard let menuController = getMenuController() else { return }
-        makeFirstResponder()
+        guard self.loadSidecarUI() else { return }
+        guard let menuController = self.getMenuController() else { return }
+        self.makeFirstResponder()
         menuController.showPhotosBrowser(nil)
     }
 
@@ -249,8 +249,8 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
             return false
         }
         print("[SidecarHelper] readSelection: image received \(image.size.width)x\(image.size.height)")
-        stopPasteboardFallback()
-        onImageReceived?(image)
+        self.stopPasteboardFallback()
+        self.onImageReceived?(image)
         return true
     }
 
@@ -272,7 +272,7 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
     }
 
     private func findFirstService(nameContains: String) -> SidecarService? {
-        for device in devices {
+        for device in self.devices {
             if let service = device.services.first(where: { $0.name.localizedCaseInsensitiveContains(nameContains) }) {
                 return service
             }
@@ -294,8 +294,10 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
     }
 
     func makeFirstResponder() {
-        guard let window = NSApp.keyWindow else { return }
-        window.makeFirstResponder(self)
+        DispatchQueue.main.async {
+            guard let window = NSApp.keyWindow else { return }
+            window.makeFirstResponder(self)
+        }
     }
 
     // MARK: - Pasteboard fallback
@@ -303,13 +305,13 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
     private var fallbackTimer: Timer?
 
     private func startPasteboardFallback(initialChangeCount: Int) {
-        stopPasteboardFallback()
+        self.stopPasteboardFallback()
         print("[SidecarHelper] Starting pasteboard fallback timer (initial changeCount=\(initialChangeCount))")
         
         var attempts = 0
         let maxAttempts = 100 // ~30 seconds at 0.3s interval
         
-        fallbackTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] timer in
+        self.fallbackTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] timer in
             guard let self = self else { timer.invalidate(); return }
             attempts += 1
             
@@ -333,7 +335,7 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
     }
 
     private func stopPasteboardFallback() {
-        fallbackTimer?.invalidate()
-        fallbackTimer = nil
+        self.fallbackTimer?.invalidate()
+        self.fallbackTimer = nil
     }
 }

@@ -61,3 +61,10 @@ Bundle(path: "/System/Library/PrivateFrameworks/SidecarCore.framework")?.load()
 - No test target exists in the project
 - Requires a real iPhone/iPad on the same Apple ID nearby for Continuity Camera to populate the device list
 - Console logs from `SidecarHelper` print full menu structure on refresh — use for debugging device discovery issues
+
+## Code Style
+
+- Use `self.` explicitly when referring to own class/struct members inside methods and closures.
+  - Example: `self.devices`, `self.triggerService(service)`, `self.onImageReceived?(image)`
+  - Inside SwiftUI `body`, implicit `self` is acceptable when referencing properties directly in the view tree (e.g., `if helper.devices.isEmpty`, `Image(nsImage: receivedImage)`).
+  - However, use explicit `self.` inside any closure attached to the view tree (e.g., `.onAppear`, `.onChange`, `Button(action:)`).
