@@ -197,8 +197,12 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
 
     func triggerService(_ service: SidecarService) {
         makeFirstResponder()
-        let pasteboard = NSPasteboard(name: .general)
+        let pasteboard = NSPasteboard.general
+        let initialChangeCount = pasteboard.changeCount
         pasteboard.clearContents()
+        
+        startPasteboardFallback(initialChangeCount: initialChangeCount)
+        
         let action = Dynamic(service.actionObject)
         action.invoke(withPasteboard: pasteboard)
     }
@@ -230,6 +234,7 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
 
     override func validRequestor(forSendType sendType: NSPasteboard.PasteboardType?,
                                returnType: NSPasteboard.PasteboardType?) -> Any? {
+        print("[SidecarHelper] validRequestor sendType=\(sendType?.rawValue ?? "nil") returnType=\(returnType?.rawValue ?? "nil")")
         if let rt = returnType, NSImage.imageTypes.contains(rt.rawValue) {
             return self
         }
@@ -237,15 +242,20 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
     }
 
     @objc func readSelection(from pasteboard: NSPasteboard) -> Bool {
+        print("[SidecarHelper] readSelection called")
         guard pasteboard.canReadItem(withDataConformingToTypes: NSImage.imageTypes),
               let image = NSImage(pasteboard: pasteboard) else {
+            print("[SidecarHelper] readSelection: could not read image from pasteboard")
             return false
         }
+        print("[SidecarHelper] readSelection: image received \(image.size.width)x\(image.size.height)")
+        stopPasteboardFallback()
         onImageReceived?(image)
         return true
     }
 
     @objc func writeSelection(to pboard: NSPasteboard, types: [NSPasteboard.PasteboardType]) -> Bool {
+        print("[SidecarHelper] writeSelection called types=\(types)")
         return false
     }
 
@@ -284,9 +294,46 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
     }
 
     func makeFirstResponder() {
-        DispatchQueue.main.async {
-            guard let window = NSApp.keyWindow else { return }
-            window.makeFirstResponder(self)
+        guard let window = NSApp.keyWindow else { return }
+        window.makeFirstResponder(self)
+    }
+
+    // MARK: - Pasteboard fallback
+
+    private var fallbackTimer: Timer?
+
+    private func startPasteboardFallback(initialChangeCount: Int) {
+        stopPasteboardFallback()
+        print("[SidecarHelper] Starting pasteboard fallback timer (initial changeCount=\(initialChangeCount))")
+        
+        var attempts = 0
+        let maxAttempts = 100 // ~30 seconds at 0.3s interval
+        
+        fallbackTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] timer in
+            guard let self = self else { timer.invalidate(); return }
+            attempts += 1
+            
+            let pb = NSPasteboard.general
+            if pb.changeCount > initialChangeCount {
+                print("[SidecarHelper] Pasteboard changed (changeCount=\(pb.changeCount) > \(initialChangeCount))")
+                if pb.canReadItem(withDataConformingToTypes: NSImage.imageTypes),
+                   let image = NSImage(pasteboard: pb) {
+                    print("[SidecarHelper] Fallback found image: \(image.size.width)x\(image.size.height)")
+                    self.stopPasteboardFallback()
+                    self.onImageReceived?(image)
+                    return
+                }
+            }
+            
+            if attempts >= maxAttempts {
+                print("[SidecarHelper] Pasteboard fallback timed out")
+                self.stopPasteboardFallback()
+            }
         }
+    }
+
+    private func stopPasteboardFallback() {
+        fallbackTimer?.invalidate()
+        fallbackTimer = nil
     }
 }
