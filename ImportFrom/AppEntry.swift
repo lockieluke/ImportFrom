@@ -81,9 +81,31 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(NSMenuItem(title: "Refresh Devices", action: #selector(self.refreshDevices), keyEquivalent: "r"))
         menu.addItem(NSMenuItem.separator())
+
+        let qualityMenuItem = NSMenuItem(title: "Quality", action: nil, keyEquivalent: "")
+        let qualitySubmenu = NSMenu()
+        for quality in ImageQuality.allCases {
+            let item = NSMenuItem(
+                title: quality.rawValue,
+                action: #selector(self.selectQuality(_:)),
+                keyEquivalent: ""
+            )
+            item.state = (quality == ImageQuality.current) ? .on : .off
+            qualitySubmenu.addItem(item)
+        }
+        qualityMenuItem.submenu = qualitySubmenu
+        menu.addItem(qualityMenuItem)
+
+        menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(self.quit), keyEquivalent: "q"))
 
         self.statusItem.menu = menu
+    }
+
+    @objc private func selectQuality(_ sender: NSMenuItem) {
+        guard let quality = ImageQuality(rawValue: sender.title) else { return }
+        ImageQuality.current = quality
+        self.rebuildMenu()
     }
 
     @objc private func importFromService(_ sender: NSMenuItem) {
@@ -122,5 +144,50 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         }
         self.panel?.alphaValue = 1
         self.panel?.makeKeyAndOrderFront(nil)
+    }
+}
+
+enum ImageQuality: String, CaseIterable {
+    case original = "Original"
+    case high = "High"
+    case medium = "Medium"
+    case low = "Low"
+
+    var compression: Double {
+        switch self {
+        case .original: return 1.0
+        case .high: return 0.9
+        case .medium: return 0.7
+        case .low: return 0.5
+        }
+    }
+
+    var fileExtension: String {
+        switch self {
+        case .original: return "png"
+        default: return "jpg"
+        }
+    }
+
+    var bitmapType: NSBitmapImageRep.FileType {
+        switch self {
+        case .original: return .png
+        default: return .jpeg
+        }
+    }
+
+    private static let defaultsKey = "imageQuality"
+
+    static var current: ImageQuality {
+        get {
+            guard let raw = UserDefaults.standard.string(forKey: Self.defaultsKey),
+                  let value = ImageQuality(rawValue: raw) else {
+                return .original
+            }
+            return value
+        }
+        set {
+            UserDefaults.standard.set(newValue.rawValue, forKey: Self.defaultsKey)
+        }
     }
 }

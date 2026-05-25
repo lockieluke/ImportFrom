@@ -102,14 +102,20 @@ struct OverlayView: View {
 
     static func writeAndTrackTempPNG(_ image: NSImage) -> URL? {
         guard let tiff = image.tiffRepresentation,
-              let bitmap = NSBitmapImageRep(data: tiff),
-              let png = bitmap.representation(using: .png, properties: [:]) else {
+              let bitmap = NSBitmapImageRep(data: tiff) else {
+            return nil
+        }
+        let quality = ImageQuality.current
+        let properties: [NSBitmapImageRep.PropertyKey: Any] = quality == .original
+            ? [:]
+            : [.compressionFactor: quality.compression]
+        guard let data = bitmap.representation(using: quality.bitmapType, properties: properties) else {
             return nil
         }
         let url = FileManager.default.temporaryDirectory
-            .appendingPathComponent(UUID().uuidString + ".png")
+            .appendingPathComponent(UUID().uuidString + ".\(quality.fileExtension)")
         do {
-            try png.write(to: url)
+            try data.write(to: url)
             self.tempFiles.insert(url)
             self.scheduleCleanup(of: url)
             return url
