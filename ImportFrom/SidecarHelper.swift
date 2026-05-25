@@ -77,8 +77,6 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
             return
         }
 
-        self.logMenuStructure(nsMenu: nsMenu)
-
         var actions: [(deviceName: String, serviceName: String, actionObj: AnyObject)] = []
         var currentDeviceName: String? = nil
 
@@ -275,19 +273,6 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
             }
         }
         return nil
-    }
-
-    private func logMenuStructure(nsMenu: NSMenu, indent: Int = 0) {
-        let prefix = String(repeating: "  ", count: indent)
-        print("[SidecarHelper] \(prefix)Menu \"\(nsMenu.title)\": \(nsMenu.items.count) items")
-        for item in nsMenu.items {
-            let represented = item.representedObject != nil ? String(describing: type(of: item.representedObject!)) : "nil"
-            let hasAction = item.action != nil
-            print("[SidecarHelper] \(prefix)  - \"\(item.title)\" action=\(hasAction) represented=\(represented) submenu=\(item.submenu != nil)")
-            if let sub = item.submenu {
-                logMenuStructure(nsMenu: sub, indent: indent + 1)
-            }
-        }
     }
 
     override var acceptsFirstResponder: Bool { true }
