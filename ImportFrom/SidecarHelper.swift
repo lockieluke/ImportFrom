@@ -1,6 +1,7 @@
 import AppKit
 import Combine
 import Dynamic
+import os.log
 
 struct SidecarDevice: Identifiable, Hashable {
     let id: String
@@ -43,7 +44,7 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
         if self.sidecarCoreBundle != nil { return true }
         let path = "/System/Library/PrivateFrameworks/SidecarCore.framework"
         guard let bundle = Bundle(path: path), bundle.load() else {
-            print("[SidecarHelper] Failed to load SidecarCore.framework")
+            Log.sidecar.error("Failed to load SidecarCore.framework")
             return false
         }
         self.sidecarCoreBundle = bundle
@@ -54,7 +55,7 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
         if self.sidecarUIBundle != nil { return true }
         let path = "/System/Library/PrivateFrameworks/SidecarUI.framework"
         guard let bundle = Bundle(path: path), bundle.load() else {
-            print("[SidecarHelper] Failed to load SidecarUI.framework")
+            Log.sidecar.error("Failed to load SidecarUI.framework")
             return false
         }
         self.sidecarUIBundle = bundle
@@ -73,7 +74,7 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
         submenu.update()
 
         guard let nsMenu = submenu.asObject as? NSMenu else {
-            print("[SidecarHelper] Could not get NSMenu from submenu")
+            Log.sidecar.error("Could not get NSMenu from submenu")
             return
         }
 
@@ -98,7 +99,7 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
         }
 
         if actions.isEmpty {
-            print("[SidecarHelper] No SidecarServiceAction objects found in menu")
+            Log.sidecar.info("No SidecarServiceAction objects found in menu")
             DispatchQueue.main.async { self.devices = [] }
             return
         }
@@ -114,9 +115,9 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
             SidecarDevice(id: name, name: name, services: services)
         }.sorted { $0.name < $1.name }
 
-        print("[SidecarHelper] Discovered \(discovered.count) device(s)")
+        Log.sidecar.info("Discovered \(discovered.count) device(s)")
         for d in discovered {
-            print("[SidecarHelper]   '\(d.name)': \(d.services.map { $0.name })")
+            Log.sidecar.info("  '\(d.name)': \(d.services.map { $0.name })")
         }
 
         DispatchQueue.main.async {
@@ -184,7 +185,7 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
     func triggerImportFromIPhone() {
         guard let firstDevice = self.devices.first,
               let firstService = firstDevice.services.first else {
-            print("[SidecarHelper] No devices available")
+            Log.sidecar.info("No devices available")
             return
         }
         self.triggerService(firstService)
@@ -229,7 +230,7 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
 
     override func validRequestor(forSendType sendType: NSPasteboard.PasteboardType?,
                                returnType: NSPasteboard.PasteboardType?) -> Any? {
-        print("[SidecarHelper] validRequestor sendType=\(sendType?.rawValue ?? "nil") returnType=\(returnType?.rawValue ?? "nil")")
+        Log.sidecar.info("validRequestor sendType=\(sendType?.rawValue ?? "nil") returnType=\(returnType?.rawValue ?? "nil")")
         if let rt = returnType, NSImage.imageTypes.contains(rt.rawValue) {
             return self
         }
@@ -237,20 +238,20 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
     }
 
     @objc func readSelection(from pasteboard: NSPasteboard) -> Bool {
-        print("[SidecarHelper] readSelection called")
+        Log.sidecar.info("readSelection called")
         guard pasteboard.canReadItem(withDataConformingToTypes: NSImage.imageTypes),
               let image = NSImage(pasteboard: pasteboard) else {
-            print("[SidecarHelper] readSelection: could not read image from pasteboard")
+            Log.sidecar.error("readSelection: could not read image from pasteboard")
             return false
         }
-        print("[SidecarHelper] readSelection: image received \(image.size.width)x\(image.size.height)")
+        Log.sidecar.info("readSelection: image received \(image.size.width)x\(image.size.height)")
         self.stopPasteboardFallback()
         self.onImageReceived?(image)
         return true
     }
 
     @objc func writeSelection(to pboard: NSPasteboard, types: [NSPasteboard.PasteboardType]) -> Bool {
-        print("[SidecarHelper] writeSelection called types=\(types)")
+        Log.sidecar.info("writeSelection called types=\(types)")
         return false
     }
 
@@ -258,7 +259,7 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
 
     private func getMenuController() -> Dynamic? {
         guard let cls = NSClassFromString("SidecarMenuController") else {
-            print("[SidecarHelper] SidecarMenuController class not found")
+            Log.sidecar.error("SidecarMenuController class not found")
             return nil
         }
         let dynamicClass = Dynamic(cls)
@@ -295,7 +296,7 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
 
     private func startPasteboardFallback(initialChangeCount: Int) {
         self.stopPasteboardFallback()
-        print("[SidecarHelper] Starting pasteboard fallback timer (initial changeCount=\(initialChangeCount))")
+        Log.sidecar.info("Starting pasteboard fallback timer (initial changeCount=\(initialChangeCount))")
 
         var lastSeenChangeCount = initialChangeCount
         var ticksSinceChange = 0
@@ -312,7 +313,7 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
                 ticksSinceChange = 0
                 if pb.canReadItem(withDataConformingToTypes: NSImage.imageTypes),
                    let image = NSImage(pasteboard: pb) {
-                    print("[SidecarHelper] Fallback found image: \(image.size.width)x\(image.size.height)")
+                    Log.sidecar.info("Fallback found image: \(image.size.width)x\(image.size.height)")
                     self.stopPasteboardFallback()
                     self.onImageReceived?(image)
                     return
@@ -322,13 +323,13 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
             ticksSinceChange += 1
 
             if ticksSinceChange >= 5 {
-                print("[SidecarHelper] Pasteboard fallback stopped (cancelled or empty)")
+                Log.sidecar.info("Pasteboard fallback stopped (cancelled or empty)")
                 self.stopPasteboardFallback()
                 return
             }
 
             if ticksSinceChange >= maxTicks {
-                print("[SidecarHelper] Pasteboard fallback timed out")
+                Log.sidecar.info("Pasteboard fallback timed out")
                 self.stopPasteboardFallback()
             }
         }
