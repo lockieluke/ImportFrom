@@ -144,8 +144,26 @@ struct DragImageRepresentable: NSViewRepresentable {
 }
 
 final class DragImageView: NSView, NSDraggingSource {
-    var image: NSImage?
+    var image: NSImage? {
+        didSet { self.needsDisplay = true }
+    }
     var onDrop: (() -> Void)?
+
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        guard let image = image else { return }
+        let rect = self.bounds
+        let aspect = image.size.width / image.size.height
+        var drawRect = rect
+        if rect.width / rect.height > aspect {
+            drawRect.size.width = rect.height * aspect
+            drawRect.origin.x = (rect.width - drawRect.width) / 2
+        } else {
+            drawRect.size.height = rect.width / aspect
+            drawRect.origin.y = (rect.height - drawRect.height) / 2
+        }
+        image.draw(in: drawRect, from: NSZeroRect, operation: .sourceOver, fraction: 1.0, respectFlipped: true, hints: nil)
+    }
 
     override func mouseDragged(with event: NSEvent) {
         guard let image = image else { return }
