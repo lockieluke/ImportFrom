@@ -1,6 +1,7 @@
 import AppKit
 import SwiftUI
 import Combine
+import LaunchAtLogin
 @_exported import SFSafeSymbols
 
 @main
@@ -96,6 +97,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         qualityMenuItem.submenu = qualitySubmenu
         menu.addItem(qualityMenuItem)
 
+        let launchItem = NSMenuItem(title: "Launch at Login", action: #selector(self.toggleLaunchAtLogin(_:)), keyEquivalent: "")
+        launchItem.state = LaunchAtLogin.isEnabled ? .on : .off
+        menu.addItem(launchItem)
+
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(self.quit), keyEquivalent: "q"))
 
@@ -105,6 +110,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func selectQuality(_ sender: NSMenuItem) {
         guard let quality = ImageQuality(rawValue: sender.title) else { return }
         ImageQuality.current = quality
+        self.rebuildMenu()
+    }
+
+    @objc private func toggleLaunchAtLogin(_ sender: NSMenuItem) {
+        LaunchAtLogin.isEnabled.toggle()
         self.rebuildMenu()
     }
 

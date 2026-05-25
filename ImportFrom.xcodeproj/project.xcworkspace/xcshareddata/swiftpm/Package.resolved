@@ -1,5 +1,5 @@
 {
-  "originHash" : "6f5a1bb59123a825f5a95f6c9f783bc56d4b5d36fd75033e9d2fde45da736dde",
+  "originHash" : "db2f22defa8f3a3b9b938ab8cb643ddf466512fbf2625cbc802d96f6059b7c16",
   "pins" : [
     {
       "identity" : "dynamic",
@@ -8,6 +8,15 @@
       "state" : {
         "revision" : "ab9a2570862d54aed2663691bb767f881226a12f",
         "version" : "1.2.0"
+      }
+    },
+    {
+      "identity" : "launchatlogin-modern",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/sindresorhus/LaunchAtLogin-Modern.git",
+      "state" : {
+        "branch" : "main",
+        "revision" : "a04ec1c363be3627734f6dad757d82f5d4fa8fcc"
       }
     },
     {
