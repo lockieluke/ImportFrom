@@ -296,17 +296,20 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
     private func startPasteboardFallback(initialChangeCount: Int) {
         self.stopPasteboardFallback()
         print("[SidecarHelper] Starting pasteboard fallback timer (initial changeCount=\(initialChangeCount))")
-        
-        var attempts = 0
-        let maxAttempts = 100 // ~30 seconds at 0.3s interval
-        
+
+        var lastSeenChangeCount = initialChangeCount
+        var ticksSinceChange = 0
+        let maxTicks = 100
+
         self.fallbackTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { [weak self] timer in
             guard let self = self else { timer.invalidate(); return }
-            attempts += 1
-            
+
             let pb = NSPasteboard.general
-            if pb.changeCount > initialChangeCount {
-                print("[SidecarHelper] Pasteboard changed (changeCount=\(pb.changeCount) > \(initialChangeCount))")
+            let currentCount = pb.changeCount
+
+            if currentCount > lastSeenChangeCount {
+                lastSeenChangeCount = currentCount
+                ticksSinceChange = 0
                 if pb.canReadItem(withDataConformingToTypes: NSImage.imageTypes),
                    let image = NSImage(pasteboard: pb) {
                     print("[SidecarHelper] Fallback found image: \(image.size.width)x\(image.size.height)")
@@ -315,8 +318,16 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
                     return
                 }
             }
-            
-            if attempts >= maxAttempts {
+
+            ticksSinceChange += 1
+
+            if ticksSinceChange >= 5 {
+                print("[SidecarHelper] Pasteboard fallback stopped (cancelled or empty)")
+                self.stopPasteboardFallback()
+                return
+            }
+
+            if ticksSinceChange >= maxTicks {
                 print("[SidecarHelper] Pasteboard fallback timed out")
                 self.stopPasteboardFallback()
             }
