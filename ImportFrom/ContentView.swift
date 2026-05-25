@@ -16,7 +16,7 @@ struct ContentView: View {
                     .frame(maxWidth: 300, maxHeight: 300)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
             } else {
-                Image(systemName: "photo.on.rectangle.angled")
+                Image(systemSymbol: .photoOnRectangleAngled)
                     .font(.system(size: 48))
                     .foregroundStyle(.secondary)
             }
@@ -33,7 +33,7 @@ struct ContentView: View {
                         ProgressView()
                             .controlSize(.small)
                     } else {
-                        Image(systemName: "arrow.clockwise")
+                        Image(systemSymbol: .arrowClockwise)
                     }
                 }
                 .buttonStyle(.borderless)
@@ -44,7 +44,7 @@ struct ContentView: View {
                 Button(action: {
                     SidecarHelper.shared.triggerImportFromIPhone()
                 }) {
-                    Label("Import from iPhone", systemImage: "iphone.and.arrow.forward")
+                    Label("Import from iPhone", systemSymbol: .iphoneAndArrowForward)
                 }
                 .buttonStyle(.borderedProminent)
             } else {
@@ -69,7 +69,7 @@ struct ContentView: View {
                         let service = device.services[selectedServiceIndex]
                         SidecarHelper.shared.triggerService(service)
                     }) {
-                        Label("Import", systemImage: "arrow.down.circle")
+                        Label("Import", systemSymbol: .arrowDownCircle)
                     }
                     .buttonStyle(.borderedProminent)
                 }

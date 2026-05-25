@@ -73,7 +73,7 @@ struct OverlayView: View {
                         .frame(maxWidth: 260, maxHeight: 260)
                         .clipShape(RoundedRectangle(cornerRadius: 8))
                 } else {
-                    Image(systemName: "photo")
+                    Image(systemSymbol: .photo)
                         .font(.system(size: 48))
                         .foregroundStyle(.secondary)
                 }
@@ -81,7 +81,7 @@ struct OverlayView: View {
                 HStack {
                     Spacer()
                     Button(action: self.onClose) {
-                        Image(systemName: "xmark.circle.fill")
+                        Image(systemSymbol: .xmarkCircleFill)
                             .font(.title2)
                             .foregroundStyle(.secondary)
                     }

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		B76F88032FC06D1400DDD1E9 /* Dynamic in Frameworks */ = {isa = PBXBuildFile; productRef = B76F88022FC06D1400DDD1E9 /* Dynamic */; };
+		B78C56A32FC3D0C8004AF4B3 /* SFSafeSymbols in Frameworks */ = {isa = PBXBuildFile; productRef = B78C56A22FC3D0C8004AF4B3 /* SFSafeSymbols */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +28,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B78C56A32FC3D0C8004AF4B3 /* SFSafeSymbols in Frameworks */,
 				B76F88032FC06D1400DDD1E9 /* Dynamic in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -71,6 +73,7 @@
 			name = ImportFrom;
 			packageProductDependencies = (
 				B76F88022FC06D1400DDD1E9 /* Dynamic */,
+				B78C56A22FC3D0C8004AF4B3 /* SFSafeSymbols */,
 			);
 			productName = ImportFrom;
 			productReference = B76F87F32FC06C7400DDD1E9 /* ImportFrom.app */;
@@ -102,6 +105,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				B76F88012FC06D1400DDD1E9 /* XCRemoteSwiftPackageReference "Dynamic" */,
+				B78C56A12FC3D0C8004AF4B3 /* XCRemoteSwiftPackageReference "SFSafeSymbols" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B76F87F42FC06C7400DDD1E9 /* Products */;
@@ -350,6 +354,14 @@
 				minimumVersion = 1.2.0;
 			};
 		};
+		B78C56A12FC3D0C8004AF4B3 /* XCRemoteSwiftPackageReference "SFSafeSymbols" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/SFSafeSymbols/SFSafeSymbols.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -357,6 +369,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = B76F88012FC06D1400DDD1E9 /* XCRemoteSwiftPackageReference "Dynamic" */;
 			productName = Dynamic;
+		};
+		B78C56A22FC3D0C8004AF4B3 /* SFSafeSymbols */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B78C56A12FC3D0C8004AF4B3 /* XCRemoteSwiftPackageReference "SFSafeSymbols" */;
+			productName = SFSafeSymbols;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

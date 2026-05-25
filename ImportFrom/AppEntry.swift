@@ -1,6 +1,7 @@
 import AppKit
 import SwiftUI
 import Combine
+@_exported import SFSafeSymbols
 
 @main
 struct ImportFrom {
@@ -33,7 +34,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupStatusItem() {
         self.statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         if let button = self.statusItem.button {
-            button.image = NSImage(systemSymbolName: "iphone", accessibilityDescription: "ImportFrom")
+            button.image = NSImage(systemSymbol: .iphone, accessibilityDescription: "ImportFrom")
         }
         self.rebuildMenu()
     }
