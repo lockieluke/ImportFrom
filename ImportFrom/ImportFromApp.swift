@@ -17,7 +17,7 @@ struct ImportFrom {
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var statusItem: NSStatusItem!
-    private var panel: OverlayPanel?
+    private var popoverController: PopoverController?
     private var cancellables = Set<AnyCancellable>()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -120,7 +120,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func importFromService(_ sender: NSMenuItem) {
         guard let service = sender.representedObject as? SidecarService else { return }
-        self.preparePanelForImport()
         SidecarHelper.shared.triggerService(service)
     }
 
@@ -134,26 +133,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.terminate(nil)
     }
 
-    // MARK: - Overlay Panel
-
-    private func preparePanelForImport() {
-        if self.panel == nil {
-            self.panel = OverlayPanel()
-        }
-        self.panel?.alphaValue = 0
-        self.panel?.makeKeyAndOrderFront(nil)
-    }
+    // MARK: - Popover
 
     private func showOverlay(image: NSImage) {
-        if self.panel == nil {
-            self.panel = OverlayPanel()
+        if self.popoverController == nil {
+            self.popoverController = PopoverController()
         }
-        self.panel?.setImage(image)
-        if let button = self.statusItem.button {
-            self.panel?.positionBelow(button)
-        }
-        self.panel?.alphaValue = 1
-        self.panel?.makeKeyAndOrderFront(nil)
+        guard let button = self.statusItem.button else { return }
+        self.popoverController?.showWithImage(image, relativeTo: button)
     }
 }
 
