@@ -44,7 +44,7 @@ struct ContentView: View {
                 Button(action: {
                     SidecarHelper.shared.triggerImportFromIPhone()
                 }) {
-                    Label("Import from iPhone", systemSymbol: .iphoneAndArrowForward)
+                    Label("Import from iPhone", systemSymbol: .iphoneAndArrowForwardInward)
                 }
                 .buttonStyle(.borderedProminent)
             } else {
