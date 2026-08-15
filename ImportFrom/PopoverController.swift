@@ -3,6 +3,8 @@ import SwiftUI
 
 class PopoverController: NSObject {
     private let popover = NSPopover()
+    
+    var deviceName: String?
 
     override init() {
         super.init()
@@ -13,7 +15,6 @@ class PopoverController: NSObject {
     }
 
     func show(relativeTo button: NSStatusBarButton) {
-        PopoverController.cleanupTempFiles()
         if let vc = self.popover.contentViewController as? ImagePopoverViewController {
             vc.image = nil
         }
@@ -21,15 +22,13 @@ class PopoverController: NSObject {
     }
 
     func showWithImage(_ image: NSImage, relativeTo button: NSStatusBarButton) {
-        PopoverController.cleanupTempFiles()
         let viewController = ImagePopoverViewController()
+        viewController.deviceName = self.deviceName
         viewController.image = image
         viewController.onDragEnded = { [weak self] in
-            PopoverController.cleanupTempFiles()
             self?.dismiss()
         }
         viewController.onClose = { [weak self] in
-            PopoverController.cleanupTempFiles()
             self?.dismiss()
         }
         self.popover.contentViewController = viewController
@@ -37,11 +36,8 @@ class PopoverController: NSObject {
     }
 
     func dismiss() {
-        PopoverController.cleanupTempFiles()
         self.popover.performClose(nil)
     }
-
-    // MARK: - Temp file management
 
     private static var tempFiles: Set<URL> = []
 
@@ -68,18 +64,11 @@ class PopoverController: NSObject {
             .appendingPathComponent(UUID().uuidString + ".\(quality.fileExtension)")
         do {
             try data.write(to: url)
+            print("Saved temp PNG to \(url.path())")
             tempFiles.insert(url)
-            self.scheduleCleanup(of: url)
             return url
         } catch {
             return nil
-        }
-    }
-
-    private static func scheduleCleanup(of url: URL) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 300) {
-            try? FileManager.default.removeItem(at: url)
-            tempFiles.remove(url)
         }
     }
 }

@@ -24,10 +24,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
         self.setupStatusItem()
         self.observeDevices()
-        SidecarHelper.shared.onImageReceived = { [weak self] image in
-            self?.showOverlay(image: image)
+        SidecarHelper.shared.onImageReceived = { [weak self] image, deviceName in
+            self?.showOverlay(image: image, deviceName: deviceName)
         }
         self.refreshDevices()
+    }
+    
+    func applicationWillTerminate(_ notification: Notification) {
+        PopoverController.cleanupTempFiles()
     }
 
     // MARK: - Status Bar
@@ -135,10 +139,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     // MARK: - Popover
 
-    private func showOverlay(image: NSImage) {
+    private func showOverlay(image: NSImage, deviceName: String?) {
         if self.popoverController == nil {
             self.popoverController = PopoverController()
         }
+        self.popoverController?.deviceName = deviceName
         guard let button = self.statusItem.button else { return }
         self.popoverController?.showWithImage(image, relativeTo: button)
     }

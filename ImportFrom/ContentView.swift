@@ -77,7 +77,7 @@ struct ContentView: View {
         }
         .padding()
         .onAppear {
-            SidecarHelper.shared.onImageReceived = { image in
+            SidecarHelper.shared.onImageReceived = { image, _ in
                 DispatchQueue.main.async {
                     self.receivedImage = image
                 }

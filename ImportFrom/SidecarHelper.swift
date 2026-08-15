@@ -15,6 +15,7 @@ struct SidecarDevice: Identifiable, Hashable {
 struct SidecarService: Identifiable, Hashable {
     let id: String
     let name: String
+    let deviceName: String
     fileprivate let actionObject: AnyObject
 
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
@@ -27,10 +28,12 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
 
     @Published var devices: [SidecarDevice] = []
 
-    var onImageReceived: ((NSImage) -> Void)?
+    var onImageReceived: ((NSImage, _ deviceName: String?) -> Void)?
 
     private var sidecarCoreBundle: Bundle?
     private var sidecarUIBundle: Bundle?
+    
+    private var deviceName: String?
 
     private override init() {
         super.init()
@@ -107,7 +110,7 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
         // Group by device name
         var grouped: [String: [SidecarService]] = [:]
         for (deviceName, serviceName, actionObj) in actions {
-            let svc = SidecarService(id: "\(deviceName)_\(serviceName)", name: serviceName, actionObject: actionObj)
+            let svc = SidecarService(id: "\(deviceName)_\(serviceName)", name: serviceName, deviceName: deviceName, actionObject: actionObj)
             grouped[deviceName, default: []].append(svc)
         }
 
@@ -192,6 +195,7 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
     }
 
     func triggerService(_ service: SidecarService) {
+        self.deviceName = service.deviceName
         self.makeFirstResponder()
         let pasteboard = NSPasteboard.general
         let initialChangeCount = pasteboard.changeCount
@@ -246,7 +250,7 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
         }
         Log.sidecar.info("readSelection: image received \(image.size.width)x\(image.size.height)")
         self.stopPasteboardFallback()
-        self.onImageReceived?(image)
+        self.onImageReceived?(image, self.deviceName)
         return true
     }
 
@@ -315,7 +319,7 @@ class SidecarHelper: NSResponder, NSServicesMenuRequestor, ObservableObject {
                    let image = NSImage(pasteboard: pb) {
                     Log.sidecar.info("Fallback found image: \(image.size.width)x\(image.size.height)")
                     self.stopPasteboardFallback()
-                    self.onImageReceived?(image)
+                    self.onImageReceived?(image, self.deviceName)
                     return
                 }
             }

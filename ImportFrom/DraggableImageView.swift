@@ -47,6 +47,6 @@ final class DraggableImageView: NSView, NSDraggingSource {
     }
 
     func draggingSession(_ session: NSDraggingSession, endedAt screenPoint: NSPoint, operation: NSDragOperation) {
-        onDragEnded?(operation)
+        self.onDragEnded?(operation)
     }
 }
