@@ -85,7 +85,7 @@ final class ImageContainerView: NSView {
         }, onSave: {
             if let image = self.image {
                 let downloadsURL = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first!
-                let fileURL = downloadsURL.appendingPathComponent("ImportedFrom_\(self.deviceName ?? "Unknown")_\(timestamp).png")
+                let fileURL = downloadsURL.appendingPathComponent("ImportedFrom_\(makeDeviceNameSafe(self.deviceName ?? "Unknown"))_\(displayedTimestamp).png")
                 guard let tiffData = image.tiffRepresentation,
                       let bitmap = NSBitmapImageRep(data: tiffData),
                       let pngData = bitmap.representation(using: .png, properties: [:]) else {

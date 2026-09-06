@@ -13,3 +13,17 @@ func sys(_ key: String) -> String {
     }
     return NSLocalizedString(key, comment: "")
 }
+
+func makeDeviceNameSafe(_ deviceName: String) -> String {
+    let table = [
+        " ": "_",
+        "'": "",
+    ]
+    
+    var safeName = deviceName
+    for (key, value) in table {
+        safeName = safeName.replacingOccurrences(of: key, with: value)
+    }
+    
+    return safeName
+}
