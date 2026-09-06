@@ -28,12 +28,17 @@ final class ImageContainerView: NSView {
         didSet {
             imageView?.image = image
             imageView?.isHidden = (image == nil)
+            self.needsLayout = true
         }
     }
     var onDragEnded: ((NSDragOperation) -> Void)?
     var deviceName: String?
     private var imageView: DraggableImageView?
     private var actionsView: ImageActionsView?
+    private var ivWidthConstraint: NSLayoutConstraint?
+    private var ivHeightConstraint: NSLayoutConstraint?
+
+    override var intrinsicContentSize: NSSize { NSSize(width: 300, height: 340) }
 
     override init(frame frameRect: NSRect) {
         super.init(frame: frameRect)
@@ -54,13 +59,24 @@ final class ImageContainerView: NSView {
             self?.onDragEnded?(operation)
         }
         iv.wantsLayer = true
-        iv.layer?.masksToBounds = true
         iv.layer?.cornerRadius = 8
         iv.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(iv)
+        NSLayoutConstraint.activate([
+            iv.centerXAnchor.constraint(equalTo: self.centerXAnchor),
+            iv.centerYAnchor.constraint(equalTo: self.centerYAnchor, constant: 20),
+            iv.widthAnchor.constraint(lessThanOrEqualToConstant: 300),
+            iv.heightAnchor.constraint(lessThanOrEqualToConstant: 300),
+        ])
         self.imageView = iv
         
-        let timestamp = Int(Date().timeIntervalSince1970)
+        let formatter = DateFormatter()
+        let date = Date()
+        formatter.locale = Locale.current
+        formatter.dateFormat = "yyyyMMdd_HHmmss"
+        
+        let displayedTimestamp = formatter.string(from: date)
+        
         let actionsView = ImageActionsView(onCopy: {
             NSPasteboard.general.clearContents()
             if let image = self.image {
@@ -93,10 +109,10 @@ final class ImageContainerView: NSView {
             iv.centerYAnchor.constraint(equalTo: self.centerYAnchor),
             iv.widthAnchor.constraint(lessThanOrEqualToConstant: 260),
             iv.heightAnchor.constraint(lessThanOrEqualToConstant: 260),
+
+            hostedActionsView.centerXAnchor.constraint(equalTo: self.centerXAnchor),
+            hostedActionsView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -12),
         ])
-        let aspectConstraint = iv.widthAnchor.constraint(equalTo: iv.heightAnchor, multiplier: 1)
-        aspectConstraint.priority = .defaultLow
-        aspectConstraint.isActive = true
     }
 
     override func layout() {
@@ -110,8 +126,16 @@ final class ImageContainerView: NSView {
             } else {
                 targetSize = CGSize(width: maxSize.width, height: maxSize.width / aspect)
             }
-            iv.widthAnchor.constraint(equalToConstant: targetSize.width).isActive = true
-            iv.heightAnchor.constraint(equalToConstant: targetSize.height).isActive = true
+            if let w = self.ivWidthConstraint, let h = self.ivHeightConstraint {
+                w.constant = targetSize.width
+                h.constant = targetSize.height
+            } else {
+                let w = iv.widthAnchor.constraint(equalToConstant: targetSize.width)
+                let h = iv.heightAnchor.constraint(equalToConstant: targetSize.height)
+                NSLayoutConstraint.activate([w, h])
+                self.ivWidthConstraint = w
+                self.ivHeightConstraint = h
+            }
         }
     }
 }

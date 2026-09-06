@@ -31,7 +31,6 @@ struct ImageActionsView: View {
                 Label("Save to Downloads", systemSymbol: .squareAndArrowDown)
             }
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical)
+        .padding(.top, 30)
     }
 }

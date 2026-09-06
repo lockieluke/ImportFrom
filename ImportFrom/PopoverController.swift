@@ -32,6 +32,7 @@ class PopoverController: NSObject {
             self?.dismiss()
         }
         self.popover.contentViewController = viewController
+        self.popover.contentSize = NSSize(width: 300, height: 340)
         self.popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
     }
 
