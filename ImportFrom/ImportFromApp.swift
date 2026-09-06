@@ -137,8 +137,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.terminate(nil)
     }
 
-    // MARK: - Popover
-
     private func showOverlay(image: NSImage, deviceName: String?) {
         if self.popoverController == nil {
             self.popoverController = PopoverController()
